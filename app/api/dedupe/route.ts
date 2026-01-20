@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as path from 'path';
 import { connectDBCached, env } from '../../../src/config';
 import { DedupeService } from '../../../src/services';
 
@@ -10,12 +11,15 @@ export async function POST(request: NextRequest) {
     await connectDBCached();
     
     const body = await request.json().catch(() => ({}));
-    const { 
-      path: targetPath = env.defaultDownloadsPath, 
-      dryRun = false,
-      strategy = 'keep-latest',
-      moveToTrash = true
-    } = body;
+    const rawPath = body.path;
+    const dryRun = body.dryRun ?? false;
+    const strategy = body.strategy ?? 'keep-latest';
+    const moveToTrash = body.moveToTrash ?? true;
+    
+    // Normalize the path - handle empty strings, trim whitespace, and resolve path
+    const targetPath = rawPath && typeof rawPath === 'string' && rawPath.trim() 
+      ? path.normalize(rawPath.trim()) 
+      : env.defaultDownloadsPath;
 
     // Validate strategy
     const validStrategies = ['keep-latest', 'keep-oldest', 'keep-largest'];

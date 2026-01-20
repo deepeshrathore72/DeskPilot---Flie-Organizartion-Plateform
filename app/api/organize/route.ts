@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as path from 'path';
 import { connectDBCached, env } from '../../../src/config';
 import { OrganizerService } from '../../../src/services';
 
@@ -10,11 +11,14 @@ export async function POST(request: NextRequest) {
     await connectDBCached();
     
     const body = await request.json().catch(() => ({}));
-    const { 
-      path: targetPath = env.defaultDownloadsPath, 
-      dryRun = false,
-      recursive = false 
-    } = body;
+    const rawPath = body.path;
+    const dryRun = body.dryRun ?? false;
+    const recursive = body.recursive ?? false;
+    
+    // Normalize the path - handle empty strings, trim whitespace, and resolve path
+    const targetPath = rawPath && typeof rawPath === 'string' && rawPath.trim() 
+      ? path.normalize(rawPath.trim()) 
+      : env.defaultDownloadsPath;
 
     const organizer = new OrganizerService();
     const result = await organizer.organize(targetPath, { dryRun, recursive });

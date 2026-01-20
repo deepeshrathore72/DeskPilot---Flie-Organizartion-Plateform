@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as path from 'path';
 import { connectDBCached, env } from '../../../src/config';
 import { ScannerService } from '../../../src/services';
 
@@ -10,10 +11,13 @@ export async function POST(request: NextRequest) {
     await connectDBCached();
     
     const body = await request.json().catch(() => ({}));
-    const { 
-      path: targetPath = env.defaultDownloadsPath, 
-      recursive = true 
-    } = body;
+    const rawPath = body.path;
+    const recursive = body.recursive ?? true;
+    
+    // Normalize the path - handle empty strings, trim whitespace, and resolve path
+    const targetPath = rawPath && typeof rawPath === 'string' && rawPath.trim() 
+      ? path.normalize(rawPath.trim()) 
+      : env.defaultDownloadsPath;
 
     const scanner = new ScannerService();
     const result = await scanner.scan(targetPath, { recursive });

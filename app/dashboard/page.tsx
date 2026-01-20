@@ -177,11 +177,12 @@ export default function DashboardPage() {
       setRunningOperation('scan');
       setOperationResult(null);
       
+      const trimmedPath = customPath.trim();
       const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          path: customPath || undefined,
+          path: trimmedPath || undefined,
           recursive: true
         })
       });
@@ -204,11 +205,12 @@ export default function DashboardPage() {
       setRunningOperation('organize');
       setOperationResult(null);
       
+      const trimmedPath = customPath.trim();
       const res = await fetch('/api/organize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          path: customPath || undefined,
+          path: trimmedPath || undefined,
           dryRun,
           recursive: false
         })
@@ -232,11 +234,12 @@ export default function DashboardPage() {
       setRunningOperation('dedupe');
       setOperationResult(null);
       
+      const trimmedPath = customPath.trim();
       const res = await fetch('/api/dedupe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          path: customPath || undefined,
+          path: trimmedPath || undefined,
           dryRun,
           strategy: dedupeStrategy,
           moveToTrash: true
