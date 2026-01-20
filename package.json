@@ -7,11 +7,11 @@
     "deskpilot": "./dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "next build",
+    "build:tsc": "tsc",
     "build:watch": "tsc --watch",
     "cli": "ts-node cli/index.ts",
     "dev": "next dev --port 3006",
-    "build:next": "next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
