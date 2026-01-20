@@ -1,0 +1,10 @@
+export { ScannerService } from './scanner';
+export type { ScanOptions, ScanResult, ScannedFile, DuplicateGroup } from './scanner';
+export { OrganizerService } from './organizer';
+export type { OrganizeOptions, OrganizePlan, OrganizeResult } from './organizer';
+export { DedupeService } from './deduper';
+export type { DedupeOptions, DedupeStrategy, DuplicateInfo, DedupeResult } from './deduper';
+export { RollbackService } from './rollback';
+export type { RollbackResult } from './rollback';
+export { ReporterService } from './reporter';
+export type { ReportData } from './reporter';

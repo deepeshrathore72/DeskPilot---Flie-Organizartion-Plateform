@@ -1,0 +1,11 @@
+# DeskPilot
+node_modules/
+dist/
+.next/
+.env
+*.log
+.DS_Store
+Thumbs.db
+.deskpilot-trash/
+coverage/
+*.tsbuildinfo
