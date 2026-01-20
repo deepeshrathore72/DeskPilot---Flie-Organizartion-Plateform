@@ -32,11 +32,11 @@ My system's **Downloads folder** is constantly cluttered with:
 
 ### What I Need:
 
-✅ **Automatically organize downloads** into logical categories  
-✅ **Detect and safely remove duplicates** using secure hashing  
-✅ **Generate detailed reports** about my files  
-✅ **Keep a history of changes** for accountability  
-✅ **Support rollback** if something goes wrong  
+- ✅ **Automatically organize downloads** into logical categories
+- ✅ **Detect and safely remove duplicates** using secure hashing
+- ✅ **Generate detailed reports** about my files
+- ✅ **Keep a history of changes** for accountability
+- ✅ **Support rollback** if something goes wrong
 
 **DeskPilot** solves all these problems with a powerful CLI and optional web dashboard.
 
@@ -45,12 +45,14 @@ My system's **Downloads folder** is constantly cluttered with:
 ## ✨ Features
 
 ### 🔍 Smart Scanning
+
 - Recursively scan any directory
 - Calculate SHA-256 hashes for accurate duplicate detection
 - Extract file metadata (size, dates, extensions)
 - Categorize files automatically
 
 ### 📁 Intelligent Organization
+
 - Auto-sort files into categories:
   - 📄 Documents (PDF, DOCX, TXT, etc.)
   - 🖼️ Images (JPG, PNG, GIF, etc.)
@@ -60,23 +62,30 @@ My system's **Downloads folder** is constantly cluttered with:
   - 🗜️ Archives (ZIP, RAR, 7Z, etc.)
   - 💻 Code (JS, TS, PY, etc.)
   - 📁 Others
+
 - **Dry-run mode** to preview changes
 - Collision handling for duplicate filenames
 
 ### 🔄 Duplicate Removal
+
 - SHA-256 hash-based detection (no false positives)
 - Multiple strategies:
   - `keep-latest` - Keep most recently modified
   - `keep-oldest` - Keep original file
   - `keep-largest` - Keep largest file
+
 - Move to trash (recoverable) or permanent delete
 
 ### ⏪ Rollback Support
+
+
 - Every operation is recorded as a transaction
 - Full rollback capability to undo changes
 - Transaction history in database
 
 ### 📊 Comprehensive Reports
+
+
 - Total files and disk usage
 - Duplicate statistics
 - Category breakdown
@@ -84,6 +93,7 @@ My system's **Downloads folder** is constantly cluttered with:
 - Space savings calculations
 
 ### 🖥️ Web Dashboard
+
 - Real-time statistics
 - Visual category breakdown
 - Transaction history with rollback buttons
@@ -226,61 +236,6 @@ target-directory/
 └── Others/
 ```
 
----
-
-### Remove Duplicates
-
-Find and remove duplicate files:
-
-```bash
-# Preview duplicates (dry-run)
-npm run cli -- dedupe /path --dry-run
-
-# Remove duplicates (keep latest)
-npm run cli -- dedupe /path --strategy=keep-latest
-
-# Keep oldest files
-npm run cli -- dedupe /path --strategy=keep-oldest
-
-# Keep largest files
-npm run cli -- dedupe /path --strategy=keep-largest
-
-# Permanently delete (skip trash)
-npm run cli -- dedupe /path --permanent
-```
-
----
-
-### Rollback Changes
-
-Undo a previous operation:
-
-```bash
-# List rollbackable transactions
-npm run cli -- transactions
-
-# Rollback a specific transaction
-npm run cli -- rollback <transaction-id>
-```
-
----
-
-### Generate Report
-
-View comprehensive statistics:
-
-```bash
-npm run cli -- report
-```
-
-**Report includes:**
-- Overview statistics
-- Category breakdown
-- Duplicate statistics
-- Recent activity
-
----
-
 ## 🌐 Web Dashboard
 
 Start the web dashboard (uses your configured port, defaults to **3006**):
@@ -291,24 +246,19 @@ npm run dev
 ```
 
 ### Dashboard Features:
+
 - **Control Panel** to run **Scan / Organize / Dedupe** with custom path, dry-run toggle, and dedupe strategy
 - **Overview cards** - Total scans, files, duplicates, space saved
 - **Category breakdown** - Visual distribution of file types
 - **Duplicate stats** - Groups, wasted space, top extensions
- - **Transaction history** - Rollback any organize/dedupe in one click
+- **Transaction history** - Rollback any organize/dedupe in one click
 - **Recent scans** - Latest scans with paths and duplicate counts
 
 ### Control Panel Options (front-end triggers server-side jobs)
+
 - **Path**: leave empty to use the default Downloads folder from `.env`
 - **Dry Run**: preview organize/dedupe without changing files
 - **Dedupe Strategy**: `keep-latest` | `keep-oldest` | `keep-largest`
-
-### API endpoints powering the UI
-- `POST /api/scan` – run a scan
-- `POST /api/organize` – organize files
-- `POST /api/dedupe` – remove duplicates
-- `POST /api/transactions/:id/rollback` – rollback an operation
-- `GET /api/report` – dashboard data
 
 ---
 
@@ -319,11 +269,13 @@ npm run dev
 **Problem:** Detecting duplicate files accurately without false positives.
 
 **Solution:** SHA-256 cryptographic hashing provides:
+
 - ✅ **Collision resistance** - Virtually impossible for two different files to have the same hash
 - ✅ **Deterministic** - Same file always produces same hash
 - ✅ **Fast enough** - Efficient for large files with streaming
 
-**Alternative considered:** File size + name comparison  
+**Alternative considered:** File size + name comparison
+
 **Rejected because:** Different files can have same size/name
 
 ---
@@ -333,12 +285,14 @@ npm run dev
 **Problem:** Operations modify file system; mistakes can cause data loss.
 
 **Solution:** Every operation creates a transaction record containing:
+
 - Type (organize, dedupe, rollback)
 - All actions performed (from → to paths)
 - Status of each action
 - Summary statistics
 
 **Benefits:**
+
 - ✅ **Auditability** - Know exactly what changed
 - ✅ **Rollback support** - Undo any operation
 - ✅ **Error recovery** - Resume partial operations
@@ -374,155 +328,17 @@ Rollback reverses these actions in order.
 ### Why MongoDB Schema Design?
 
 **Requirements:**
+
 - Store scan results efficiently
 - Query duplicates by hash
 - Track transaction history
 - Support reporting aggregations
 
-**Schema Design:**
-
-```
-Scan (1) ─────────────< FileRecord (many)
-  │
-  │  scanId (indexed)
-  │
-Transaction (standalone)
-  │
-  └── actions[] (embedded for atomicity)
-```
-
-**Indexes:**
-- `FileRecord.hash` - Fast duplicate detection
-- `FileRecord.scanId` - Retrieve files per scan
-- `Transaction.createdAt` - Recent activity
-- `Scan.createdAt` - Recent scans
-
 ---
 
 ## 💾 Database Schema
 
-### Scan Collection
-
-```typescript
-{
-  scanId: string,          // UUID
-  scannedPath: string,     // "/path/to/directory"
-  totalFiles: number,
-  totalSize: number,       // bytes
-  duplicatesCount: number,
-  duplicatesSize: number,  // bytes
-  categories: {
-    Documents: { count: number, size: number },
-    Images: { count: number, size: number },
-    // ...
-  },
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### FileRecord Collection
-
-```typescript
-{
-  scanId: string,          // Reference to Scan
-  fileName: string,
-  filePath: string,        // Current path
-  originalPath: string,    // Path when scanned
-  hash: string,            // SHA-256
-  extension: string,       // ".pdf"
-  category: string,        // "Documents"
-  size: number,
-  isDuplicate: boolean,
-  duplicateOf: string,     // Path of original
-  fileCreatedAt: Date,
-  fileModifiedAt: Date,
-  createdAt: Date
-}
-```
-
-### Transaction Collection
-
-```typescript
-{
-  transactionId: string,   // UUID
-  type: 'organize' | 'dedupe' | 'rollback',
-  status: 'pending' | 'completed' | 'failed' | 'rolled_back',
-  actions: [{
-    actionId: string,
-    type: 'move' | 'delete' | 'restore',
-    from: string,
-    to: string,
-    status: 'pending' | 'completed' | 'failed',
-    error?: string,
-    fileHash?: string,
-    fileSize?: number
-  }],
-  summary: {
-    movedCount: number,
-    deletedCount: number,
-    restoredCount: number,
-    failedCount: number,
-    savedBytes: number,
-    totalProcessed: number
-  },
-  targetPath: string,
-  dryRun: boolean,
-  strategy?: string,
-  createdAt: Date,
-  completedAt?: Date,
-  rolledBackAt?: Date
-}
-```
-
 ---
-
-## 📂 Project Structure
-
-```
-deskpilot/
-├── cli/
-│   ├── index.ts              # CLI entry point (Commander.js)
-│   └── commands/
-│       ├── scan.ts           # Scan command
-│       ├── organize.ts       # Organize command
-│       ├── dedupe.ts         # Dedupe command
-│       ├── rollback.ts       # Rollback command
-│       └── report.ts         # Report command
-├── src/
-│   ├── config/
-│   │   ├── db.ts             # MongoDB connection
-│   │   └── env.ts            # Environment config
-│   ├── models/
-│   │   ├── Scan.ts           # Scan model
-│   │   ├── FileRecord.ts     # FileRecord model
-│   │   └── Transaction.ts    # Transaction model
-│   ├── services/
-│   │   ├── scanner.ts        # File scanning logic
-│   │   ├── organizer.ts      # File organization logic
-│   │   ├── deduper.ts        # Duplicate detection/removal
-│   │   ├── rollback.ts       # Rollback operations
-│   │   └── reporter.ts       # Report generation
-│   └── utils/
-│       ├── hash.ts           # SHA-256 hashing
-│       ├── categorize.ts     # File categorization
-│       ├── fsSafe.ts         # Safe file operations
-│       └── logger.ts         # Colored logging
-├── app/                      # Next.js dashboard
-│   ├── page.tsx              # Landing page
-│   ├── dashboard/
-│   │   └── page.tsx          # Dashboard page
-│   └── api/
-│       ├── report/route.ts
-│       ├── scans/route.ts
-│       └── transactions/route.ts
-├── sample-output/            # Example CLI outputs
-├── package.json
-├── tsconfig.json
-├── .env.example
-├── README.md
-└── DEMO_SCRIPT.md
-```
 
 ---
 
@@ -541,9 +357,9 @@ See the `sample-output/` directory for:
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing`)
+2. Create a feature branch: `git checkout -b feature/amazing`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing`
 5. Open a Pull Request
 
 ---
@@ -552,18 +368,4 @@ See the `sample-output/` directory for:
 
 MIT License - see LICENSE file for details.
 
----
-
-## 🙏 Acknowledgments
-
-- [Commander.js](https://github.com/tj/commander.js) - CLI framework
-- [Mongoose](https://mongoosejs.com/) - MongoDB ODM
-- [Chalk](https://github.com/chalk/chalk) - Terminal styling
-- [Next.js](https://nextjs.org/) - React framework
-- [TailwindCSS](https://tailwindcss.com/) - CSS framework
-
----
-
 **Made with ❤️ for clean Downloads folders everywhere**
-#   D e s k P i l o t - - - F l i e - O r g a n i z a r t i o n - P l a t e f o r m  
- 
